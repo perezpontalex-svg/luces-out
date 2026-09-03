@@ -2,197 +2,408 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Luces OUT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LUCES OUT</title>
+
 <style>
-*{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:Arial,sans-serif}
-body{background:url("fondo.jpg") center/cover no-repeat}
 
-.luz{
- position:fixed;top:0;bottom:0;width:7vw;min-width:35px;
- background:#ff0000;opacity:0;z-index:2;
- box-shadow:0 0 35px 15px rgba(255,0,0,.95);
- transition:opacity .04s
-}
-.luz.on{opacity:.92}
-#izq{left:0} #der{right:0}
+html, body {
+width: 100%;
+height: 100%;
+margin: 0;
+overflow: hidden;
 
-#out{
- position:fixed;z-index:3;left:50%;top:48%;
- transform:translate(-50%,-50%);
- color:#fff;font-size:13vw;font-weight:900;
- text-shadow:0 0 25px red,0 0 60px red;
- opacity:0;pointer-events:none
-}
-#out.on{opacity:1}
+background-image: url("./fondo.png");
+background-position: center;
+background-size: cover;
+background-repeat: no-repeat;
 
-#estado{
- position:fixed;z-index:5;top:12px;left:50%;
- transform:translateX(-50%);
- color:#fff;background:rgba(0,0,0,.72);
- padding:8px 13px;border-radius:10px;font-weight:bold
+font-family: Arial, sans-serif;
 }
 
-#controles{
- position:fixed;z-index:5;bottom:22px;left:50%;
- transform:translateX(-50%);
- display:flex;gap:8px
+/* OSCURECIMIENTO SUAVE PARA QUE SE VEAN LAS LUCES */
+#oscuro {
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.08);
+z-index: 1;
 }
-button{
- border:0;border-radius:10px;padding:12px 18px;
- font-size:15px;font-weight:bold;cursor:pointer
-}
-#mic{background:#fff;color:#111}
-#test{background:#ff4b16;color:#fff}
 
-@media(max-width:600px){
- #controles{bottom:12px}
- button{font-size:13px;padding:10px 13px}
+/* LUCES ROJAS */
+
+.luz {
+position: fixed;
+
+top: 18%;
+height: 64%;
+
+width: 28px;
+
+background: #ff0000;
+
+opacity: 0;
+
+z-index: 5;
+
+box-shadow:
+0 0 18px 6px rgba(255,0,0,0.95),
+0 0 40px 12px rgba(255,0,0,0.55);
+
+transition: opacity 0.04s linear;
 }
+
+#izq {
+left: 0;
+}
+
+#der {
+right: 0;
+}
+
+.luz.on {
+opacity: 1;
+}
+
+
+/* PANEL CENTRAL */
+
+#panel {
+position: fixed;
+
+left: 50%;
+bottom: 25px;
+
+transform: translateX(-50%);
+
+z-index: 10;
+
+text-align: center;
+
+background: rgba(0,0,0,0.60);
+
+padding: 12px 20px;
+
+border-radius: 14px;
+
+color: white;
+}
+
+#estado {
+font-size: 18px;
+font-weight: bold;
+
+margin-bottom: 10px;
+}
+
+button {
+border: none;
+
+border-radius: 10px;
+
+padding: 10px 16px;
+
+margin: 3px;
+
+font-size: 14px;
+
+font-weight: bold;
+
+cursor: pointer;
+}
+
+#micro {
+background: white;
+color: black;
+}
+
+#prueba {
+background: #ff0000;
+color: white;
+}
+
+#micro.activo {
+background: #16c60c;
+color: white;
+}
+
 </style>
 </head>
+
 <body>
+
+<div id="oscuro"></div>
+
 <div id="izq" class="luz"></div>
 <div id="der" class="luz"></div>
-<div id="out">OUT</div>
 
-<div id="estado">🎤 Pulsa MICRÓFONO</div>
 
-<div id="controles">
- <button id="mic">🎤 MICRÓFONO</button>
- <button id="test">🔴 PROBAR OUT</button>
+<div id="panel">
+
+<div id="estado">
+MICRÓFONO PARADO
 </div>
 
+<button id="micro">
+🎤 ACTIVAR MICRÓFONO
+</button>
+
+<button id="prueba">
+🔴 PROBAR OUT
+</button>
+
+</div>
+
+
 <script>
-let activo=false;
-let reconocimiento=null;
-let temporizador=null;
-let ultimaDeteccion=0;
 
-const estado=document.getElementById("estado");
-const boton=document.getElementById("mic");
+const luzIzq = document.getElementById("izq");
+const luzDer = document.getElementById("der");
 
-function encenderOut(){
- const ahora=Date.now();
- if(ahora-ultimaDeteccion<700)return;
- ultimaDeteccion=ahora;
+const estado = document.getElementById("estado");
 
- clearTimeout(temporizador);
- document.getElementById("izq").classList.add("on");
- document.getElementById("der").classList.add("on");
- document.getElementById("out").classList.add("on");
- estado.textContent="🔴 ¡OUT!";
+const botonMicro = document.getElementById("micro");
+const botonPrueba = document.getElementById("prueba");
 
- temporizador=setTimeout(()=>{
-   document.getElementById("izq").classList.remove("on");
-   document.getElementById("der").classList.remove("on");
-   document.getElementById("out").classList.remove("on");
-   estado.textContent=activo?"🎤 ESCUCHANDO...":"🎤 Pulsa MICRÓFONO";
- },1800);
+
+let reconocimiento = null;
+let escuchando = false;
+
+
+/* =========================
+ENCENDER LUCES
+========================= */
+
+function encenderLuces() {
+
+luzIzq.classList.add("on");
+luzDer.classList.add("on");
+
+estado.textContent = "🔴 OUT";
+
+setTimeout(() => {
+
+luzIzq.classList.remove("on");
+luzDer.classList.remove("on");
+
+if (escuchando) {
+estado.textContent = "🎤 ESCUCHANDO...";
+} else {
+estado.textContent = "MICRÓFONO PARADO";
 }
 
-function esOut(texto){
- texto=texto.toLowerCase()
-   .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-   .replace(/[.,!?;:]/g," ");
-
- return /\bout\b|\baut\b|\bhaut\b|\baout\b|\bowt\b|\boot\b|\ba\s*ut\b|\bo\s*ut\b/.test(texto);
+}, 900);
 }
 
-function crearReconocimiento(){
- const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 
- if(!SR){
-   estado.textContent="❌ Este Chrome no admite reconocimiento de voz";
-   return null;
- }
+/* =========================
+RECONOCIMIENTO DE VOZ
+========================= */
 
- const r=new SR();
+const SpeechRecognition =
+window.SpeechRecognition ||
+window.webkitSpeechRecognition;
 
- r.lang="en-US";
- r.continuous=true;
- r.interimResults=true;
- r.maxAlternatives=10;
 
- r.onstart=()=>{
-   estado.textContent="🎤 ESCUCHANDO...";
-   boton.textContent="🔴 PARAR MICRÓFONO";
- };
+if (SpeechRecognition) {
 
- r.onresult=(evento)=>{
-   let texto="";
+reconocimiento = new SpeechRecognition();
 
-   for(let i=evento.resultIndex;i<evento.results.length;i++){
-     for(let j=0;j<evento.results[i].length;j++){
-       texto+=" "+evento.results[i][j].transcript;
-     }
-   }
+reconocimiento.lang = "en-US";
 
-   if(esOut(texto)) encenderOut();
- };
+reconocimiento.continuous = true;
 
- r.onerror=(evento)=>{
-   if(evento.error==="not-allowed" ||
-      evento.error==="service-not-allowed"){
-     activo=false;
-     estado.textContent="❌ Chrome ha bloqueado el micrófono";
-     boton.textContent="🎤 MICRÓFONO";
-   }
- };
+reconocimiento.interimResults = true;
 
- r.onend=()=>{
-   if(activo){
-     setTimeout(()=>{
-       if(!activo)return;
-       try{
-         reconocimiento=crearReconocimiento();
-         if(reconocimiento) reconocimiento.start();
-       }catch(e){}
-     },150);
-   }
- };
+reconocimiento.maxAlternatives = 3;
 
- return r;
-}
 
-function iniciar(){
- if(activo)return;
+reconocimiento.onstart = function() {
 
- activo=true;
- reconocimiento=crearReconocimiento();
+escuchando = true;
 
- if(!reconocimiento){
-   activo=false;
-   return;
- }
+botonMicro.textContent = "🎤 PARAR MICRÓFONO";
 
- try{
-   reconocimiento.start();
- }catch(e){
-   activo=false;
-   estado.textContent="❌ Pulsa MICRÓFONO otra vez";
- }
-}
+botonMicro.classList.add("activo");
 
-function parar(){
- activo=false;
+estado.textContent = "🎤 ESCUCHANDO...";
 
- if(reconocimiento){
-   try{reconocimiento.stop()}catch(e){}
- }
-
- boton.textContent="🎤 MICRÓFONO";
- estado.textContent="🎤 Pulsa MICRÓFONO";
-}
-
-boton.onclick=()=>{
- if(activo) parar();
- else iniciar();
 };
 
-document.getElementById("test").onclick=encenderOut;
+
+reconocimiento.onresult = function(event) {
+
+let texto = "";
+
+for (
+let i = event.resultIndex;
+i < event.results.length;
+i++
+) {
+
+texto +=
+event.results[i][0].transcript + " ";
+
+}
+
+
+texto = texto
+.toLowerCase()
+.trim();
+
+
+console.log("Escuchado:", texto);
+
+
+/*
+PALABRAS QUE CONSIDERAMOS OUT.
+
+Chrome puede entender:
+OUT
+AUT
+OUT!
+*/
+
+const palabrasOut = [
+"out",
+"aut"
+];
+
+
+for (const palabra of palabrasOut) {
+
+const expresion =
+new RegExp(
+"(^|\\s)" +
+palabra +
+"(\\s|$|[.,!?])",
+"i"
+);
+
+
+if (expresion.test(texto)) {
+
+encenderLuces();
+
+break;
+}
+}
+
+};
+
+
+reconocimiento.onerror = function(event) {
+
+console.log(
+"Error del micrófono:",
+event.error
+);
+
+
+if (event.error === "not-allowed") {
+
+escuchando = false;
+
+estado.textContent =
+"⚠️ PERMITE EL MICRÓFONO EN CHROME";
+
+botonMicro.textContent =
+"🎤 ACTIVAR MICRÓFONO";
+
+botonMicro.classList.remove("activo");
+
+}
+
+};
+
+
+reconocimiento.onend = function() {
+
+/*
+Chrome puede detener el reconocimiento
+automáticamente. Lo volvemos a iniciar.
+*/
+
+if (escuchando) {
+
+setTimeout(() => {
+
+try {
+reconocimiento.start();
+} catch (e) {}
+
+}, 200);
+
+}
+
+};
+
+}
+
+
+/* =========================
+BOTÓN MICRÓFONO
+========================= */
+
+botonMicro.onclick = function() {
+
+if (!reconocimiento) {
+
+estado.textContent =
+"⚠️ ESTE CHROME NO ADMITE RECONOCIMIENTO DE VOZ";
+
+return;
+}
+
+
+if (!escuchando) {
+
+escuchando = true;
+
+try {
+
+reconocimiento.start();
+
+} catch (e) {
+
+console.log(e);
+
+}
+
+} else {
+
+escuchando = false;
+
+try {
+
+reconocimiento.stop();
+
+} catch (e) {}
+
+botonMicro.textContent =
+"🎤 ACTIVAR MICRÓFONO";
+
+botonMicro.classList.remove("activo");
+
+estado.textContent =
+"MICRÓFONO PARADO";
+
+}
+
+};
+
+
+/* =========================
+BOTÓN DE PRUEBA
+========================= */
+
+botonPrueba.onclick = function() {
+
+encenderLuces();
+
+};
+
 </script>
+
 </body>
 </html>
- 
