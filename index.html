@@ -230,40 +230,6 @@ estado.textContent = "🎤 ESCUCHANDO...";
 
 };
 reconocimiento.onresult = function(event) {
-
-let texto = "";
-
-for (
-let i = event.resultIndex;
-i < event.results.length;
-i++
-) {
-texto += event.results[i][0].transcript + " ";
-}
-
-// Quitamos signos y pasamos todo a minúsculas
-texto = texto
-.toLowerCase()
-.normalize("NFD")
-.replace(/[\u0300-\u036f]/g, "")
-.replace(/[.,!?¿¡]/g, " ")
-.trim();
-
-console.log("Escuchado:", texto);
-
-
-// Palabras que activan las luces
-const palabrasOut = [
-"out",
-"aut",
-"outt",
-"haut",
-"ow",
-"fault",
-"faut",
-"falt",
-"folt"
-];
 console.log("Escuchado:", texto);
 
 if (
