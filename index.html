@@ -230,6 +230,46 @@ estado.textContent = "🎤 ESCUCHANDO...";
 
 };
 reconocimiento.onresult = function(event) {
+let ultimaDeteccion = 0;
+
+function distancia(a, b) {
+
+const matriz = [];
+
+for (let i = 0; i <= b.length; i++) {
+matriz[i] = [i];
+}
+
+for (let j = 0; j <= a.length; j++) {
+matriz[0][j] = j;
+}
+
+for (let i = 1; i <= b.length; i++) {
+
+for (let j = 1; j <= a.length; j++) {
+
+if (b[i - 1] === a[j - 1]) {
+
+matriz[i][j] =
+matriz[i - 1][j - 1];
+
+} else {
+
+matriz[i][j] =
+Math.min(
+matriz[i - 1][j] + 1,
+matriz[i][j - 1] + 1,
+matriz[i - 1][j - 1] + 1
+);
+}
+}
+}
+
+return matriz[b.length][a.length];
+}
+
+
+reconocimiento.onresult = function(event) {
 
 let texto = "";
 
@@ -238,8 +278,11 @@ let i = event.resultIndex;
 i < event.results.length;
 i++
 ) {
-texto += event.results[i][0].transcript + " ";
+
+texto +=
+event.results[i][0].transcript + " ";
 }
+
 
 texto = texto
 .toLowerCase()
@@ -248,19 +291,70 @@ texto = texto
 .replace(/[.,!?¿¡]/g, " ")
 .trim();
 
+
 console.log("Escuchado:", texto);
 
+
+const palabras = texto.split(/\s+/);
+
+
+let detectado = false;
+
+
+for (const palabra of palabras) {
+
+/* OUT y pronunciaciones parecidas */
+
 if (
-texto.includes("out") ||
-texto.includes("aut") ||
-texto.includes("outt") ||
-texto.includes("fault") ||
-texto.includes("faut") ||
-texto.includes("falt") ||
-texto.includes("folt")
+palabra === "out" ||
+palabra === "aut" ||
+palabra === "outt" ||
+palabra === "ow" ||
+distancia(palabra, "out") <= 1
 ) {
+
+detectado = true;
+break;
+}
+
+
+/* FAULT y pronunciaciones parecidas */
+
+if (
+palabra === "fault" ||
+palabra === "faut" ||
+palabra === "falt" ||
+palabra === "folt" ||
+palabra === "foult" ||
+palabra === "faul" ||
+palabra === "felt" ||
+palabra === "volt" ||
+distancia(palabra, "fault") <= 2
+) {
+
+detectado = true;
+break;
+}
+}
+
+
+/*
+Evita que una misma palabra provisional
+encienda las luces muchas veces seguidas.
+*/
+
+const ahora = Date.now();
+
+if (
+detectado &&
+ahora - ultimaDeteccion > 700
+) {
+
+ultimaDeteccion = ahora;
+
 encenderLuces();
 }
+
 };
 reconocimiento.onerror = function(event) {
 console.log(
