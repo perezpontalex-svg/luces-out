@@ -247,81 +247,13 @@ texto = texto.toLowerCase().trim();
 
 console.log("Escuchado:", texto);
 
-/*
-DETECCIÓN INMEDIATA
-*/
-
 if (
 texto.includes("out") ||
 texto.includes("aut")
 ) {
-
 encenderLuces();
-
 }
-
-};lt = function(event) {
-
-let texto = "";
-
-for (
-let i = event.resultIndex;
-i < event.results.length;
-i++
-) {
-
-texto +=
-event.results[i][0].transcript + " ";
-
-}
-
-
-texto = texto
-.toLowerCase()
-.trim();
-
-
-console.log("Escuchado:", texto);
-
-
-/*
-PALABRAS QUE CONSIDERAMOS OUT.
-
-Chrome puede entender:
-OUT
-AUT
-OUT!
-*/
-
-const palabrasOut = [
-"out",
-"aut"
-];
-
-
-for (const palabra of palabrasOut) {
-
-const expresion =
-new RegExp(
-"(^|\\s)" +
-palabra +
-"(\\s|$|[.,!?])",
-"i"
-);
-
-
-if (expresion.test(texto)) {
-
-encenderLuces();
-
-break;
-}
-}
-
 };
-
-
-reconocimiento.onerror = function(event) {
 
 console.log(
 "Error del micrófono:",
