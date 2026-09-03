@@ -230,11 +230,34 @@ estado.textContent = "🎤 ESCUCHANDO...";
 
 };
 reconocimiento.onresult = function(event) {
+
+let texto = "";
+
+for (
+let i = event.resultIndex;
+i < event.results.length;
+i++
+) {
+texto += event.results[i][0].transcript + " ";
+}
+
+texto = texto
+.toLowerCase()
+.normalize("NFD")
+.replace(/[\u0300-\u036f]/g, "")
+.replace(/[.,!?¿¡]/g, " ")
+.trim();
+
 console.log("Escuchado:", texto);
 
 if (
 texto.includes("out") ||
-texto.includes("aut")  
+texto.includes("aut") ||
+texto.includes("outt") ||
+texto.includes("fault") ||
+texto.includes("faut") ||
+texto.includes("falt") ||
+texto.includes("folt")
 ) {
 encenderLuces();
 }
