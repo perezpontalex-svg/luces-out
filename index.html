@@ -273,6 +273,50 @@ encenderLuces();
 }
 };
 
+reconocimiento.onresult = function(event) {
+
+let texto = "";
+
+for (
+let i = event.resultIndex;
+i < event.results.length;
+i++
+) {
+texto += event.results[i][0].transcript + " ";
+}
+
+texto = texto
+.toLowerCase()
+.normalize("NFD")
+.replace(/[\u0300-\u036f]/g, "")
+.replace(/[.,!?¿¡]/g, " ")
+.trim();
+
+console.log("ESCUCHADO:", texto);
+
+const esOut =
+texto.includes("out") ||
+texto.includes("aut") ||
+texto.includes("ow") ||
+texto.includes("aout") ||
+texto.includes("haut");
+
+const esFault =
+texto.includes("fault") ||
+texto.includes("faut") ||
+texto.includes("falt") ||
+texto.includes("folt") ||
+texto.includes("foul") ||
+texto.includes("fall") ||
+texto.includes("volt") ||
+texto.includes("felt") ||
+texto.includes("faul");
+
+if (esOut || esFault) {
+encenderLuces();
+}
+};
+
 
 reconocimiento.onerror = function(event) {
 console.log(
