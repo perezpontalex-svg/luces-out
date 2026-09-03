@@ -230,6 +230,7 @@ estado.textContent = "🎤 ESCUCHANDO...";
 
 };
 reconocimiento.onresult = function(event) {
+reconocimiento.onresult = function(event) {
 
 let texto = "";
 
@@ -272,6 +273,7 @@ if (esOut || esFault) {
 encenderLuces();
 }
 };
+
 
 reconocimiento.onerror = function(event) {
 console.log(
