@@ -264,19 +264,6 @@ const palabrasOut = [
 "falt",
 "folt"
 ];
-
-let texto = "";
-
-for (
-let i = event.resultIndex;
-i < event.results.length;
-i++
-) {
-texto += event.results[i][0].transcript + " ";
-}
-
-texto = texto.toLowerCase().trim();
-
 console.log("Escuchado:", texto);
 
 if (
